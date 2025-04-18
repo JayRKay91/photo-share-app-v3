@@ -1,101 +1,72 @@
 <!doctype html>
-<html>
+<html lang="en">
 <head>
-    <title>Upload Media</title>
-    <style>
-        body {
-            font-family: Arial, sans-serif;
-            padding: 20px;
-        }
-        h1 {
-            font-size: 28px;
-        }
-        form {
-            max-width: 400px;
-            margin-top: 20px;
-        }
-        label {
-            display: block;
-            margin-top: 15px;
-            font-weight: bold;
-        }
-        input[type="file"],
-        select,
-        input[type="text"] {
-            width: 100%;
-            padding: 8px;
-            margin-top: 5px;
-        }
-        button {
-            margin-top: 20px;
-            padding: 10px 16px;
-            font-size: 16px;
-            background-color: #1976d2;
-            color: white;
-            border: none;
-            cursor: pointer;
-            border-radius: 5px;
-        }
-        button:hover {
-            background-color: #125da6;
-        }
-        a {
-            text-decoration: none;
-            color: #444;
-            margin-bottom: 20px;
-            display: inline-block;
-        }
-        .message {
-            background-color: #fff3cd;
-            padding: 10px;
-            border: 1px solid #ffeeba;
-            margin-bottom: 20px;
-        }
-    </style>
+  <meta charset="utf-8">
+  <title>Upload Media</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/upload.css') }}">
 </head>
 <body>
+  <header>
     <h1>Upload New Photo(s) or Video(s)</h1>
-    <a href="{{ url_for('main.index') }}">← Back to Gallery</a>
+    <nav>
+      <a href="{{ url_for('main.index') }}">← Back to Gallery</a>
+    </nav>
+  </header>
 
-    {% with messages = get_flashed_messages() %}
+  <section class="messages">
+    {% with messages = get_flashed_messages(with_categories=true) %}
       {% if messages %}
-        <div class="message">
-          {% for message in messages %}
-            <p>{{ message }}</p>
+        <ul class="flashes">
+          {% for category, msg in messages %}
+            <li class="flash-{{ category }}">{{ msg }}</li>
           {% endfor %}
-        </div>
+        </ul>
       {% endif %}
     {% endwith %}
+  </section>
 
-    <form id="uploadForm" method="POST" enctype="multipart/form-data">
-        <label for="photos">Select one or more photos or videos to upload:</label>
-        <input type="file" id="photos" name="photos" multiple required>
+  <main>
+    <form
+      id="uploadForm"
+      method="post"
+      enctype="multipart/form-data"
+      class="upload-form"
+    >
+      <div class="form-group">
+        <label for="photos">Select one or more photos or videos:</label>
+        <input
+          type="file"
+          id="photos"
+          name="photos"
+          multiple
+          required
+        >
+      </div>
 
+      <div class="form-group">
         <label for="album">Choose an album:</label>
         <select name="album" id="album">
-            <option value="">-- No Album --</option>
-            {% if albums is defined %}
-                {% for album in albums %}
-                    <option value="{{ album }}">{{ album }}</option>
-                {% endfor %}
-            {% endif %}
+          <option value="">-- No Album --</option>
+          {% for album in albums %}
+            <option value="{{ album }}">{{ album }}</option>
+          {% endfor %}
         </select>
+      </div>
 
+      <div class="form-group">
         <label for="new_album">Or create a new album:</label>
-        <input type="text" id="new_album" name="new_album" placeholder="Enter new album name">
+        <input
+          type="text"
+          id="new_album"
+          name="new_album"
+          placeholder="Enter new album name"
+        >
+      </div>
 
-        <button type="submit">Upload Photo(s)/Video(s)</button>
+      <button type="submit">Upload Media</button>
     </form>
+  </main>
 
-    <script>
-        // On form submission, if a new album name is provided,
-        // it replaces the value of the album select field.
-        document.getElementById('uploadForm').addEventListener('submit', function(e) {
-            const newAlbum = document.getElementById('new_album').value.trim();
-            if (newAlbum) {
-                document.getElementById('album').value = newAlbum;
-            }
-        });
-    </script>
+  <script src="{{ url_for('static', filename='js/upload.js') }}"></script>
 </body>
 </html>
