@@ -1,0 +1,18 @@
+# Ignore Python cache
+__pycache__/
+*.py[cod]
+
+# Virtual environment
+venv/
+
+# Local data not needed in Git
+app/descriptions.json
+
+# VS Code settings (optional)
+.vscode/
+
+# Mac system files (optional)
+.DS_Store
+
+# Album info not needed in Git
+app/albums.json

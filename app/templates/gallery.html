@@ -1,0 +1,267 @@
+<!doctype html>
+<html>
+<head>
+    <title>Gallery</title>
+    <style>
+        .gallery-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+            gap: 20px;
+        }
+        .gallery-item {
+            border: 1px solid #ccc;
+            padding: 10px;
+            text-align: center;
+        }
+        .gallery-item img, .gallery-item video {
+            max-width: 100%;
+            height: auto;
+            cursor: pointer;
+        }
+        .action-buttons {
+            margin-top: 10px;
+        }
+        #preview {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0,0,0,0.8);
+            z-index: 9999;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+            box-sizing: border-box;
+            cursor: pointer;
+        }
+        .preview-box {
+            position: relative;
+            cursor: auto;
+        }
+        .close-btn {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            background-color: #fff;
+            border: none;
+            font-size: 18px;
+            padding: 8px;
+            cursor: pointer;
+            border-radius: 4px;
+        }
+        .preview-content {
+            max-width: 90vw;
+            max-height: 90vh;
+            width: auto;
+            height: auto;
+            box-shadow: 0 0 15px rgba(0,0,0,0.5);
+        }
+        .video-wrapper {
+            position: relative;
+            display: inline-block;
+        }
+        .play-overlay {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            font-size: 48px;
+            color: white;
+            background-color: rgba(0, 0, 0, 0.4);
+            border-radius: 50%;
+            padding: 10px 15px;
+            pointer-events: none;
+        }
+        .tags {
+            margin-top: 8px;
+            font-size: 0.9em;
+        }
+        .tag {
+            display: inline-block;
+            background-color: #e0e0e0;
+            border-radius: 4px;
+            padding: 2px 6px;
+            margin: 2px;
+        }
+        .filter-info {
+            margin: 10px 0;
+            background-color: #f3f3f3;
+            padding: 10px;
+            border-left: 4px solid #2196F3;
+        }
+        .rename-tag-form {
+            display: inline;
+        }
+        .rename-tag-form input {
+            width: 80px;
+            font-size: 0.8em;
+        }
+        .rename-tag-form button {
+            font-size: 0.8em;
+        }
+        .search-bar {
+            margin: 20px 0;
+        }
+    </style>
+</head>
+<body>
+    <h1>Photo Gallery</h1>
+    <a href="{{ url_for('main.upload') }}">Upload New Photo</a>
+
+    <!-- 🔍 Search Bar -->
+    <div class="search-bar">
+        <form action="{{ url_for('main.index') }}" method="GET">
+            <input type="text" name="search" placeholder="Search by filename, description, album, or tag..." style="width: 60%;">
+            <button type="submit">🔍 Search</button>
+        </form>
+    </div>
+
+    {% if request.args.get('tag') %}
+    <div class="filter-info">
+        <strong>Filtering by tag:</strong> "{{ request.args.get('tag') }}"<br>
+        <a href="{{ url_for('main.index') }}">🔄 Clear Filter</a>
+    </div>
+    {% endif %}
+
+    {% with messages = get_flashed_messages() %}
+      {% if messages %}
+        <ul>
+          {% for message in messages %}
+            <li>{{ message }}</li>
+          {% endfor %}
+        </ul>
+      {% endif %}
+    {% endwith %}
+
+    <h3>Rename Tag Across All Images</h3>
+    <form action="{{ url_for('main.rename_tag_global') }}" method="POST">
+        <input type="text" name="old_tag" placeholder="Old tag" required>
+        <input type="text" name="new_tag" placeholder="New tag" required>
+        <button type="submit">Rename Globally</button>
+    </form>
+
+    <div class="gallery-grid">
+        {% for image in images %}
+        <div class="gallery-item">
+            {% if image.type == 'video' %}
+                <div class="video-wrapper">
+                    <img src="{{ url_for('static', filename=image.thumb) }}"
+                         alt="{{ image.filename }}"
+                         onclick="openPreview('{{ url_for('static', filename='uploads/' + image.filename) }}', true)"
+                         onerror="handleThumbnailError(this, '{{ url_for('static', filename='uploads/' + image.filename) }}', '{{ image.filename }}')">
+                    <div class="play-overlay">&#9658;</div>
+                </div>
+            {% else %}
+                <img src="{{ url_for('static', filename='uploads/' + image.filename) }}"
+                     alt="{{ image.filename }}"
+                     onclick="openPreview(this.src)"
+                     onerror="handleThumbnailError(this, this.src, '{{ image.filename }}')">
+            {% endif %}
+
+            {% if image.album %}<p>📁 Album: {{ image.album }}</p>{% endif %}
+
+            <form action="{{ url_for('main.update_description', filename=image.filename) }}" method="POST">
+                <textarea name="description" rows="2" cols="25" placeholder="Add a description...">{{ image.description }}</textarea>
+                <br>
+                <button type="submit">💾 Save</button>
+            </form>
+
+            <div class="tags">
+                {% if image.tags %}
+                    <strong>Tags:</strong><br>
+                    {% for tag in image.tags %}
+                        <a href="{{ url_for('main.index', tag=tag|lower) }}" class="tag">📌 {{ tag }}</a>
+                        <form action="{{ url_for('main.remove_tag', filename=image.filename, tag=tag) }}" method="POST" style="display:inline;">
+                            <button type="submit">❌</button>
+                        </form>
+                        <form class="rename-tag-form" action="{{ url_for('main.rename_tag_single') }}" method="POST" style="display:inline;">
+                            <input type="hidden" name="filename" value="{{ image.filename }}">
+                            <input type="hidden" name="old_tag" value="{{ tag }}">
+                            <input type="text" name="new_tag" placeholder="Rename tag" maxlength="30">
+                            <button type="submit">✏️</button>
+                        </form>
+                        <br>
+                    {% endfor %}
+                {% endif %}
+                <form action="{{ url_for('main.add_tag', filename=image.filename) }}" method="POST" style="margin-top: 5px;">
+                    <input type="text" name="tag" placeholder="Add tag..." maxlength="30" style="width: 80%;">
+                    <button type="submit">➕</button>
+                </form>
+            </div>
+
+            <div class="action-buttons">
+                <a href="{{ url_for('main.download_image', filename=image.filename) }}">
+                    <button>⬇️ Download</button>
+                </a>
+                <form action="{{ url_for('main.delete_image', filename=image.filename) }}"
+                      method="POST"
+                      onsubmit="return confirm('Are you sure you want to delete this image?');"
+                      style="display:inline;">
+                    <button type="submit">🗑️ Delete</button>
+                </form>
+            </div>
+        </div>
+        {% else %}
+        <p>No photos yet. Be the first to upload one!</p>
+        {% endfor %}
+    </div>
+
+    <div id="preview" onclick="closePreview()"></div>
+
+    <script>
+        function openPreview(src, isVideo = false) {
+            const preview = document.getElementById('preview');
+            const previewBox = document.createElement('div');
+            previewBox.className = 'preview-box';
+            previewBox.onclick = function(e) { e.stopPropagation(); };
+
+            let content;
+            if (isVideo) {
+                content = document.createElement('video');
+                content.src = src;
+                content.controls = true;
+                content.autoplay = true;
+                content.className = 'preview-content';
+            } else {
+                content = document.createElement('img');
+                content.src = src;
+                content.className = 'preview-content';
+            }
+
+            const closeButton = document.createElement('button');
+            closeButton.className = 'close-btn';
+            closeButton.textContent = 'X';
+            closeButton.onclick = function() { closePreview(); };
+
+            previewBox.appendChild(content);
+            previewBox.appendChild(closeButton);
+            preview.innerHTML = '';
+            preview.appendChild(previewBox);
+            preview.style.display = 'flex';
+        }
+
+        function closePreview() {
+            const preview = document.getElementById('preview');
+            preview.innerHTML = '';
+            preview.style.display = 'none';
+        }
+
+        function handleThumbnailError(imgElement, fallbackUrl, filename) {
+            const link = document.createElement('a');
+            link.href = fallbackUrl;
+            link.textContent = filename;
+            link.target = "_blank";
+            const parent = imgElement.parentNode;
+            parent.replaceChild(link, imgElement);
+        }
+
+        document.addEventListener('keydown', function(event) {
+            if (event.key === 'Escape') {
+                closePreview();
+            }
+        });
+    </script>
+</body>
+</html>
