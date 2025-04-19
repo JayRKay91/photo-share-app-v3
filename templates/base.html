@@ -1,0 +1,31 @@
+<!-- templates/base.html -->
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>{% block title %}Photo Gallery{% endblock %}</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/gallery.css') }}">
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/upload.css') }}">
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/sticky-search.css') }}">
+</head>
+<body>
+  <header class="sticky-search">
+    <form action="{{ url_for('main.index') }}" method="get" class="sticky-search__form">
+      <input
+        type="search"
+        name="search"
+        placeholder="Search by filename, description, album, or tag…"
+        value="{{ request.args.get('search', '') }}"
+        aria-label="Search gallery"
+      >
+      <button type="submit">🔍</button>
+    </form>
+  </header>
+
+  <main>
+    {% block content %}{% endblock %}
+  </main>
+
+  <script src="{{ url_for('static', filename='js/gallery.js') }}"></script>
+</body>
+</html>

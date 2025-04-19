@@ -1,0 +1,56 @@
+/* static/css/sticky-search.css */
+.sticky-search {
+    position: sticky;
+    top: 0;
+    width: 100%;
+    background: #fff;
+    z-index: 1000;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    padding: 0.5rem 1rem;
+  }
+  
+  .sticky-search__form {
+    max-width: 800px;
+    margin: 0 auto;
+    display: flex;
+    gap: 0.5rem;
+  }
+  
+  .sticky-search__form input[type="search"] {
+    flex: 1;
+    padding: 0.5rem 0.75rem;
+    font-size: 1rem;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+  }
+  
+  .sticky-search__form button {
+    padding: 0.5rem 1rem;
+    font-size: 1rem;
+    background-color: #1976d2;
+    color: #fff;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+  }
+  
+  .sticky-search__form button:hover {
+    background-color: #125da6;
+  }
+  
+  /* Ensure content isn’t hidden under the sticky header */
+  body {
+    /* equal or greater than header height */
+    padding-top: 3.5rem;
+  }
+  
+  /* Mobile responsiveness */
+  @media (max-width: 600px) {
+    .sticky-search__form {
+      flex-direction: column;
+    }
+    .sticky-search__form button {
+      width: 100%;
+    }
+  }
+  
