@@ -61,6 +61,7 @@
             <img
               src="{{ url_for('static', filename=img.thumb) }}"
               alt="Thumbnail for {{ img.filename }}"
+              class="clickable"
               data-full="{{ url_for('static', filename='uploads/' + img.filename) }}"
               data-type="video"
               onerror="handleError(this)"
@@ -71,8 +72,9 @@
           <img
             src="{{ url_for('static', filename='uploads/' + img.filename) }}"
             alt="{{ img.description or img.filename }}"
-            data-full="{{ url_for('static', filename='uploads/' + img.filename) }}"
             class="clickable"
+            data-full="{{ url_for('static', filename='uploads/' + img.filename) }}"
+            data-type="image"
             onerror="handleError(this)"
           >
         {% endif %}
@@ -103,7 +105,6 @@
                   onclick="submitForm('remove-tag-{{ img.filename }}-{{ tag }}')"
                   aria-label="Remove tag {{ tag }}"
                 >❌</button>
-
                 <form
                   id="remove-tag-{{ img.filename }}-{{ tag }}"
                   action="{{ url_for('main.remove_tag', filename=img.filename, tag=tag) }}"
@@ -159,8 +160,13 @@
     {% endfor %}
   </main>
 
-  <!-- Preview Overlay -->
-  <div id="preview" aria-hidden="true" onclick="closePreview()"></div>
+  <!-- Preview Overlay with Navigation -->
+  <div id="preview" aria-hidden="true" onclick="closePreview()">
+    <button class="close-btn" aria-label="Close" onclick="closePreview()">×</button>
+    <button class="nav-btn prev-btn" aria-label="Previous" onclick="navigate(-1)">‹</button>
+    <div class="preview-box" onclick="event.stopPropagation()"></div>
+    <button class="nav-btn next-btn" aria-label="Next" onclick="navigate(1)">›</button>
+  </div>
 
   <script src="{{ url_for('static', filename='js/gallery.js') }}"></script>
 </body>

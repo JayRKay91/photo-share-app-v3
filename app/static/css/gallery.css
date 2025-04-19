@@ -222,3 +222,37 @@
     box-shadow: 0 0 15px rgba(0,0,0,0.5);
   }
   
+  /* Navigation Arrows */
+  #preview .nav-btn {
+    position: absolute;
+    top: 50%;
+    transform: translateY(-50%);
+    background: rgba(255,255,255,0.7);
+    border: none;
+    font-size: 2rem;
+    padding: 0.5rem;
+    border-radius: 50%;
+    cursor: pointer;
+    z-index: 1001;
+  }
+  
+  #preview .prev-btn {
+    left: 1rem;
+  }
+  
+  #preview .next-btn {
+    right: 1rem;
+  }
+  
+  /* Responsive */
+  @media (max-width: 600px) {
+    #preview .nav-btn {
+      font-size: 1.5rem;
+      padding: 0.25rem;
+    }
+    #preview .close-btn {
+      font-size: 1.25rem;
+      padding: 0.2rem 0.4rem;
+    }
+  }
+  

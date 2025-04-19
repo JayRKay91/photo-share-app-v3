@@ -1,53 +1,53 @@
+// static/js/gallery.js
 'use strict';
 
-// Helper to submit hidden forms by ID
-function submitForm(formId) {
-  const form = document.getElementById(formId);
-  if (form) {
-    form.submit();
-  }
+const preview      = document.getElementById('preview');
+const previewBox   = document.querySelector('#preview .preview-box');
+let mediaList = [];
+let currentIndex = 0;
+
+function populateMediaList() {
+  mediaList = Array.from(document.querySelectorAll('img.clickable[data-full]'))
+    .map(el => ({
+      src: el.dataset.full,
+      type: el.dataset.type || 'image'
+    }));
 }
 
-// Open the preview overlay with image or video
-function openPreview(src, isVideo = false) {
-  const preview = document.getElementById('preview');
-  preview.innerHTML = '';            // clear out any previous content
-  preview.style.display = 'flex';    // show the overlay
+function openPreviewAt(index) {
+  currentIndex = (index + mediaList.length) % mediaList.length;
+  showPreview();
+  preview.style.display = 'flex';
+}
 
-  const box = document.createElement('div');
-  box.className = 'preview-box';
-  box.addEventListener('click', e => e.stopPropagation());  // don’t close when clicking inside box
-
+function showPreview() {
+  previewBox.innerHTML = '';
+  const { src, type } = mediaList[currentIndex];
   let content;
-  if (isVideo) {
+  if (type === 'video') {
     content = document.createElement('video');
     content.src = src;
     content.controls = true;
     content.autoplay = true;
+    content.playsInline = true;
   } else {
     content = document.createElement('img');
     content.src = src;
+    content.alt = '';
   }
   content.className = 'preview-content';
-
-  const closeBtn = document.createElement('button');
-  closeBtn.className = 'close-btn';
-  closeBtn.textContent = 'X';
-  closeBtn.addEventListener('click', closePreview);
-
-  box.appendChild(content);
-  box.appendChild(closeBtn);
-  preview.appendChild(box);
+  previewBox.appendChild(content);
 }
 
-// Close the preview overlay
+function navigate(offset) {
+  openPreviewAt(currentIndex + offset);
+}
+
 function closePreview() {
-  const preview = document.getElementById('preview');
   preview.style.display = 'none';
-  preview.innerHTML = '';
+  previewBox.innerHTML = '';
 }
 
-// Replace broken thumbnails with a download link
 function handleError(imgElement) {
   const fallbackUrl = imgElement.dataset.full;
   const filename = fallbackUrl.split('/').pop();
@@ -58,21 +58,21 @@ function handleError(imgElement) {
   imgElement.parentNode.replaceChild(link, imgElement);
 }
 
-// Attach click handlers to all thumbnails once DOM is ready
 document.addEventListener('DOMContentLoaded', () => {
-  document.querySelectorAll('img[data-full]').forEach(img => {
-    img.classList.add('clickable');
-    img.addEventListener('click', () => {
-      const src = img.dataset.full;
-      const isVideo = img.dataset.type === 'video';
-      openPreview(src, isVideo);
-    });
+  populateMediaList();
+  document.querySelectorAll('img.clickable[data-full]').forEach((img, idx) => {
+    img.addEventListener('click', () => openPreviewAt(idx));
   });
 });
 
-// Close preview on Escape key
-document.addEventListener('keydown', event => {
-  if (event.key === 'Escape') {
-    closePreview();
+document.addEventListener('keydown', (e) => {
+  if (preview.style.display === 'flex') {
+    if (e.key === 'Escape') {
+      closePreview();
+    } else if (e.key === 'ArrowRight') {
+      navigate(1);
+    } else if (e.key === 'ArrowLeft') {
+      navigate(-1);
+    }
   }
 });
