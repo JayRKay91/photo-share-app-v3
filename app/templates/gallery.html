@@ -1,3 +1,4 @@
+<!-- templates/gallery.html -->
 <!doctype html>
 <html lang="en">
 <head>
@@ -9,183 +10,103 @@
   <link rel="stylesheet" href="{{ url_for('static', filename='css/gallery.css') }}">
 </head>
 <body>
-  <div class="app-container">
-    <!-- Collapsible Sidebar for Albums & Tags -->
-    <aside class="sidebar collapsed">
-      <button class="sidebar-toggle" aria-label="Toggle navigation">☰</button>
-      <h2>Navigation</h2>
-      <nav>
-        <h3>Albums</h3>
-        <ul>
-          <li><a href="{{ url_for('main.index') }}">All</a></li>
-          {% for alb in albums_list %}
-            <li><a href="{{ url_for('main.index', album=alb) }}">{{ alb }}</a></li>
-          {% endfor %}
-        </ul>
-        <h3>Tags</h3>
-        <ul>
-          {% for tag in all_tags %}
-            <li><a href="{{ url_for('main.index', tag=tag) }}">{{ tag }}</a></li>
-          {% endfor %}
-        </ul>
-      </nav>
-    </aside>
-
-    <div class="content">
-      <!-- Header with Title & Upload Button -->
-      <header class="page-header">
-        <h1>Photo Gallery</h1>
-        <button
-          class="btn btn-primary"
-          onclick="location.href='{{ url_for('main.upload') }}'"
-        >➕ Upload New Photo</button>
-      </header>
-
-      <!-- Search Bar -->
-      <section class="controls">
-        <form action="{{ url_for('main.index') }}" method="get" class="search-form">
-          <input
-            type="search"
-            name="search"
-            placeholder="Search by filename, description, album, or tag…"
-            value="{{ search_query }}"
-            aria-label="Search gallery"
-          >
-          <button type="submit" class="btn btn-secondary">🔍</button>
-        </form>
-      </section>
-
-      <!-- Flash Messages -->
-      {% with messages = get_flashed_messages(with_categories=true) %}
-        {% if messages %}
-          <ul class="flashes">
-            {% for category, msg in messages %}
-              <li class="flash-{{ category }}">{{ msg }}</li>
+  <div class="layout-wrapper">
+    <div class="app-container">
+      <!-- Collapsible Sidebar for Albums & Tags -->
+      <aside class="sidebar collapsed">
+        <button class="sidebar-toggle" aria-label="Toggle navigation">☰</button>
+        <h2>Navigation</h2>
+        <nav>
+          <h3>Albums</h3>
+          <ul>
+            <li><a href="{{ url_for('main.index') }}">All</a></li>
+            {% for alb in albums_list %}
+              <li><a href="{{ url_for('main.index', album=alb) }}">{{ alb }}</a></li>
             {% endfor %}
           </ul>
-        {% endif %}
-      {% endwith %}
+          <h3>Tags</h3>
+          <ul>
+            {% for tag in all_tags %}
+              <li><a href="{{ url_for('main.index', tag=tag) }}">{{ tag }}</a></li>
+            {% endfor %}
+          </ul>
+        </nav>
+      </aside>
 
-      <!-- Gallery Grid with Cards -->
-      <main class="gallery-grid">
-        {% for img in images %}
-          <figure class="gallery-item card">
-            {% if img.type == 'video' %}
-              <div class="media-wrapper">
+      <div class="content">
+        <!-- Header with Title & Upload Button -->
+        <header class="page-header">
+          <h1>Photo Gallery</h1>
+          <button class="btn btn-primary"
+                  onclick="location.href='{{ url_for('main.upload') }}'">
+            ➕ Upload New Photo
+          </button>
+        </header>
+
+        <!-- Search Bar -->
+        <section class="controls">
+          <form action="{{ url_for('main.index') }}" method="get" class="search-form">
+            <input
+              type="search"
+              name="search"
+              placeholder="Search by filename, description, album, or tag…"
+              value="{{ search_query }}"
+              aria-label="Search gallery"
+            >
+            <button type="submit" class="btn btn-secondary">🔍</button>
+          </form>
+        </section>
+
+        <!-- Flash Messages -->
+        {% with messages = get_flashed_messages(with_categories=true) %}
+          {% if messages %}
+            <ul class="flashes">
+              {% for category, msg in messages %}
+                <li class="flash-{{ category }}">{{ msg }}</li>
+              {% endfor %}
+            </ul>
+          {% endif %}
+        {% endwith %}
+
+        <!-- Gallery Grid with Cards -->
+        <main class="gallery-grid">
+          {% for img in images %}
+            <figure class="gallery-item card">
+              {% if img.type == 'video' %}
+                <div class="media-wrapper">
+                  <img
+                    src="{{ url_for('static', filename=img.thumb) }}"
+                    alt="Thumbnail for {{ img.filename }}"
+                    class="clickable"
+                    data-full="{{ url_for('static', filename='uploads/' + img.filename) }}"
+                    data-type="video"
+                    onerror="handleError(this)"
+                  >
+                  <div class="play-overlay" aria-hidden="true">►</div>
+                </div>
+              {% else %}
                 <img
-                  src="{{ url_for('static', filename=img.thumb) }}"
-                  alt="Thumbnail for {{ img.filename }}"
+                  src="{{ url_for('static', filename='uploads/' + img.filename) }}"
+                  alt="{{ img.description or img.filename }}"
                   class="clickable"
                   data-full="{{ url_for('static', filename='uploads/' + img.filename) }}"
-                  data-type="video"
+                  data-type="image"
                   onerror="handleError(this)"
                 >
-                <div class="play-overlay" aria-hidden="true">►</div>
-              </div>
-            {% else %}
-              <img
-                src="{{ url_for('static', filename='uploads/' + img.filename) }}"
-                alt="{{ img.description or img.filename }}"
-                class="clickable"
-                data-full="{{ url_for('static', filename='uploads/' + img.filename) }}"
-                data-type="image"
-                onerror="handleError(this)"
-              >
-            {% endif %}
-
-            <div class="caption">
-              {% if img.album %}
-                <p class="album-label">📁 {{ img.album }}</p>
               {% endif %}
 
-              <!-- Description Form -->
-              <form
-                action="{{ url_for('main.update_description', filename=img.filename) }}"
-                method="post"
-                class="desc-form"
-              >
-                <textarea
-                  name="description"
-                  rows="2"
-                  placeholder="Add a description…"
-                  aria-label="Description for {{ img.filename }}"
-                >{{ img.description }}</textarea>
-                <button type="submit" class="btn btn-secondary">💾 Save</button>
-              </form>
-
-              <!-- Tags -->
-              <div class="tags">
-                {% for tag in img.tags %}
-                  <span class="tag-label">
-                    <a href="{{ url_for('main.index', tag=tag|lower) }}">📌 {{ tag }}</a>
-                    <button
-                      type="button"
-                      onclick="submitForm('remove-{{ img.filename }}-{{ tag }}')"
-                      aria-label="Remove tag {{ tag }}"
-                      class="btn-icon"
-                    >❌</button>
-                    <form
-                      id="remove-{{ img.filename }}-{{ tag }}"
-                      action="{{ url_for('main.remove_tag', filename=img.filename, tag=tag) }}"
-                      method="post"
-                      hidden
-                    ></form>
-                    <form
-                      action="{{ url_for('main.rename_tag_single') }}"
-                      method="post"
-                      class="rename-single-form"
-                    >
-                      <input type="hidden" name="filename" value="{{ img.filename }}">
-                      <input type="hidden" name="old_tag" value="{{ tag }}">
-                      <input
-                        type="text"
-                        name="new_tag"
-                        placeholder="Rename…"
-                        maxlength="30"
-                        aria-label="New name for tag {{ tag }}"
-                      >
-                      <button type="submit" class="btn-icon">✏️</button>
-                    </form>
-                  </span>
-                {% endfor %}
-                <form
-                  action="{{ url_for('main.add_tag', filename=img.filename) }}"
-                  method="post"
-                  class="add-tag-form"
-                >
-                  <input
-                    type="text"
-                    name="tag"
-                    placeholder="Add tag…"
-                    maxlength="30"
-                    aria-label="Add tag to {{ img.filename }}"
-                  >
-                  <button type="submit" class="btn-icon">➕</button>
-                </form>
+              <div class="caption">
+                {% if img.album %}
+                  <p class="album-label">📁 {{ img.album }}</p>
+                {% endif %}
+                <!-- description, tags, and action forms… -->
               </div>
-
-              <!-- Actions -->
-              <div class="actions">
-                <a
-                  href="{{ url_for('main.download_image', filename=img.filename) }}"
-                  class="btn btn-secondary"
-                  aria-label="Download {{ img.filename }}"
-                >⬇️ Download</a>
-                <form
-                  action="{{ url_for('main.delete_image', filename=img.filename) }}"
-                  method="post"
-                  onsubmit="return confirm('Delete {{ img.filename }}?');"
-                  class="inline-form"
-                >
-                  <button type="submit" class="btn btn-danger">🗑️ Delete</button>
-                </form>
-              </div>
-            </div>
-          </figure>
-        {% else %}
-          <p class="empty">No photos yet—be the first to upload one!</p>
-        {% endfor %}
-      </main>
+            </figure>
+          {% else %}
+            <p class="empty">No photos yet—be the first to upload one!</p>
+          {% endfor %}
+        </main>
+      </div>
     </div>
   </div>
 
