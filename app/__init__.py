@@ -6,7 +6,7 @@ def create_app():
 
     # Set upload folder and max upload size (200 MB)
     app.config["UPLOAD_FOLDER"] = os.path.join(app.static_folder, "uploads")
-    app.config["MAX_CONTENT_LENGTH"] = 200 * 1024 * 1024  # 200 MB
+    app.config["MAX_CONTENT_LENGTH"] = 10 * 1024 * 1024 * 1024 # 10 GB
     app.secret_key = "supersecretkey"
 
     from .routes import main
